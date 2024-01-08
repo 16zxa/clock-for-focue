@@ -1,6 +1,7 @@
 import time
 import tkinter as tk
 from tkinter import messagebox
+import winsound  # for Windows system sound, you can use other libraries for cross-platform support
 
 class FocusTimer:
     def __init__(self, master):
@@ -8,7 +9,7 @@ class FocusTimer:
         self.master.title("专注时钟")
 
         # 输入框和标签
-        self.label = tk.Label(self.master, text="请设置专注时间（分钟）:")
+        self.label = tk.Label(self.master, text="设置专注时间（分钟）:")
         self.label.pack(pady=10)
         self.entry = tk.Entry(self.master)
         self.entry.pack(pady=10)
@@ -48,7 +49,10 @@ class FocusTimer:
             seconds -= 1
 
         self.timer_label.config(text="时间到！")
-        messagebox.showinfo("提示", "专注时间已到了！")
+        winsound.PlaySound("SystemExit", winsound.SND_ALIAS)  # 播放系统提示音
+
+        if self.running:  # 用户未点击停止按钮，显示提示窗口
+            messagebox.showinfo("提示", "专注时间已结束！")
 
         # 计时结束后的状态恢复
         self.running = False
