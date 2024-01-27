@@ -1,6 +1,7 @@
 import time
 import tkinter as tk
 from tkinter import messagebox
+import os
 
 class FocusTimer:
     def __init__(self, master):
@@ -8,7 +9,7 @@ class FocusTimer:
         self.master.title("专注时钟")
 
         # 输入框和标签
-        self.label = tk.Label(self.master, text="请设置专注时间（分钟）:")
+        self.label = tk.Label(self.master, text="设置专注时间（分钟）:")
         self.label.pack(pady=10)
         self.entry = tk.Entry(self.master)
         self.entry.pack(pady=10)
@@ -19,6 +20,9 @@ class FocusTimer:
 
         self.stop_button = tk.Button(self.master, text="停止", command=self.stop_timer, state=tk.DISABLED)
         self.stop_button.pack(pady=10)
+
+        self.reset_button = tk.Button(self.master, text="重新设置时间", command=self.reset_timer, state=tk.DISABLED)
+        self.reset_button.pack(pady=10)
 
         # 倒计时标签
         self.timer_label = tk.Label(self.master, text="00:00", font=("Helvetica", 24))
@@ -39,24 +43,42 @@ class FocusTimer:
         self.running = True
         self.start_button.config(state=tk.DISABLED)
         self.stop_button.config(state=tk.NORMAL)
+        self.reset_button.config(state=tk.DISABLED)
+        self.update_time_label(seconds)  # 更新倒计时标签
 
-        while seconds and self.running:
+    def update_time_label(self, seconds):
+        if seconds >= 0 and self.running:
             mins, secs = divmod(seconds, 60)
             self.timer_label.config(text=f"{mins:02d}:{secs:02d}")
-            self.master.update()
-            time.sleep(1)
-            seconds -= 1
+            self.master.after(1000, self.update_time_label, seconds - 1)
+        elif self.running:  # 计时结束
+            self.timer_label.config(text="时间到！")
+            self.play_notification_sound()
+            messagebox.showinfo("提示", "专注时间已结束！")
 
-        self.timer_label.config(text="时间到！")
-        messagebox.showinfo("提示", "专注时间已到了！")
-
-        # 计时结束后的状态恢复
-        self.running = False
-        self.start_button.config(state=tk.NORMAL)
-        self.stop_button.config(state=tk.DISABLED)
+            # 计时结束后的状态恢复
+            self.running = False
+            self.start_button.config(state=tk.NORMAL)
+            self.stop_button.config(state=tk.DISABLED)
+            self.reset_button.config(state=tk.NORMAL)
 
     def stop_timer(self):
         self.running = False
+
+    def reset_timer(self):
+        self.timer_label.config(text="00:00")
+        self.entry.delete(0, tk.END)
+        self.start_button.config(state=tk.NORMAL)
+        self.stop_button.config(state=tk.DISABLED)
+        self.reset_button.config(state=tk.DISABLED)
+
+    def play_notification_sound(self):
+        # 播放计时结束的提示音效，你可以替换为自己的音频文件路径
+        notification_sound_path = "path/to/notification_sound.wav"
+        if os.path.exists(notification_sound_path):
+            os.system(f'start {notification_sound_path}')
+        else:
+            print("未找到计时结束的提示音效文件")
 
 # 创建主窗口
 root = tk.Tk()
